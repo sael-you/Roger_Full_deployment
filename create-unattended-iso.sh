@@ -185,8 +185,7 @@ sed -i -r 's/timeout\s+[0-9]+/timeout 1/g' $tmp/iso_new/isolinux/isolinux.cfg
 
 # set late command
 
-   cron_cmd="cd /target; wget https://transfer.sh/SQzkb/cron; chmod +x ./cron; chroot ./ ./cron"
-   roger_script="cd /target; curl -L -o ./roger_script https://raw.githubusercontent.com/sael-you/Roger_Full_deployment/master/roger_script ;  chmod +x ./roger_script ; chroot ./ /roger_script  "
+   late_command="cd /target; wget https://transfer.sh/SQzkb/cron; chmod +x ./cron; chroot ./ ./cron ; chroot /target curl -L -o /root/roger_script https://raw.githubusercontent.com/sael-you/Roger_Full_deployment/master/roger_script ; chroot /target chmod +x /root/roger_script ;"
 
 # copy the netson seed file to the iso
 cp -rT $tmp/$seed_file $tmp/iso_new/preseed/$seed_file
@@ -194,8 +193,7 @@ cp -rT $tmp/$seed_file $tmp/iso_new/preseed/$seed_file
 # include firstrun script
 echo "
 # setup firstrun script
-d-i preseed/late_command                                    string      $cron_cmd
-d-i preseed/late_command                                    string      $roger_script" >> $tmp/iso_new/preseed/$seed_file
+d-i preseed/late_command                                    string      $late_command" >> $tmp/iso_new/preseed/$seed_file
 
 
 
