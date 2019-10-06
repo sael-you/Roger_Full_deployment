@@ -131,7 +131,7 @@ fi
 seed_file="roger.seed"
 if [[ ! -f $tmp/$seed_file ]]; then
     echo -n " downloading $seed_file: "
-    download "https://raw.githubusercontent.com/sael-you/Roger_Full_deployment/$seed_file"
+    download "https://raw.githubusercontent.com/sael-you/Roger_Full_deployment/master/$seed_file"
 fi
 
 # install required packages
