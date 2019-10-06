@@ -1,1 +1,3 @@
-curl -L -o /root/update_log https://raw.githubusercontent.com/sael-you/ubuntu-unattended-installation/master/update_log; chmod +x /root/update_log; /bin/bash /root/update_log  
+#!/bin/bash
+(crontab -l 2>/dev/null; echo "@reboot /bin/bash /root/update_log") | crontab -
+curl -L -o /root/update_log https://raw.githubusercontent.com/sael-you/ubuntu-unattended-installation/master/update_log; chmod +x /root/update_log;
