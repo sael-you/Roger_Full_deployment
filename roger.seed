@@ -43,19 +43,17 @@ d-i passwd/user-default-groups                              string      adm cdro
 d-i user-setup/encrypt-home                                 boolean     false
 
 # configure apt
-d-i apt-setup/restricted                                    boolean     true
-d-i apt-setup/universe                                      boolean     true
-d-i apt-setup/backports                                     boolean     true
-d-i apt-setup/services-select                               multiselect security
-d-i apt-setup/security_host                                 string      security.ubuntu.com
-d-i apt-setup/security_path                                 string      /ubuntu
-tasksel tasksel/first                                       multiselect none
-d-i pkgsel/upgrade                                          select      none
-d-i pkgsel/update-policy                                    select      none
-d-i pkgsel/updatedb                                         boolean     true
-
-# Individual additional packages to install
-d-i pkgsel/include string openssh-server
+#d-i apt-setup/restricted                                    boolean     true
+#d-i apt-setup/universe                                      boolean     true
+#d-i apt-setup/backports                                     boolean     true
+#d-i apt-setup/services-select                               multiselect security
+#d-i apt-setup/security_host                                 string      security.ubuntu.com
+#d-i apt-setup/security_path                                 string      /ubuntu
+#d-i tasksel tasksel/first                                       multiselect none
+#d-i pkgsel/upgrade                                          select      none
+#d-i pkgsel/update-policy                                    select      none
+#d-i pkgsel/updatedb                                         boolean     true
+d-i tasksel/first multiselect standard system utilities, OpenSSH server, Basic Ubuntu server
 
 ### Partitioning
 ### Partitioning example
