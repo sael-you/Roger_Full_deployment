@@ -42,18 +42,33 @@ d-i user-setup/allow-password-weak                          boolean     false
 d-i passwd/user-default-groups                              string      adm cdrom dialout lpadmin plugdev sambashare
 d-i user-setup/encrypt-home                                 boolean     false
 
-# configure apt
-#d-i apt-setup/restricted                                    boolean     true
-#d-i apt-setup/universe                                      boolean     true
-#d-i apt-setup/backports                                     boolean     true
-#d-i apt-setup/services-select                               multiselect security
-#d-i apt-setup/security_host                                 string      security.ubuntu.com
-#d-i apt-setup/security_path                                 string      /ubuntu
-#d-i tasksel tasksel/first                                       multiselect none
-d-i tasksel/first multiselect standard system utilities, OpenSSH server, Basic Ubuntu server
-d-i pkgsel/upgrade                                          select      none
-d-i pkgsel/update-policy                                    select      none
-d-i pkgsel/updatedb                                         boolean     true
+
+### Apt setup
+d-i apt-setup/restricted boolean true
+d-i apt-setup/universe boolean true
+d-i apt-setup/backports boolean true
+d-i apt-setup/use_mirror boolean false
+d-i apt-setup/services-select multiselect security, updates
+d-i apt-setup/security_host string security.ubuntu.com
+d-i apt-setup/security_path string /ubuntu
+
+#### Package selection
+d-i tasksel/first multiselect none
+d-i pkgsel/include string openssh-server python
+d-i pkgsel/upgrade select full-upgrade
+d-i pkgsel/update-policy select unattended-upgrades
+
+## Individual additional packages to install
+d-i pkgsel/include string openssh-server \
+vim \
+git \
+tmux \
+build-essential \
+open-vm-tools \
+telnet \
+wget \
+curl \
+python
 
 ### Partitioning
 ### Partitioning example
