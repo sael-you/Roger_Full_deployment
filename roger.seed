@@ -50,10 +50,10 @@ d-i user-setup/encrypt-home                                 boolean     false
 #d-i apt-setup/security_host                                 string      security.ubuntu.com
 #d-i apt-setup/security_path                                 string      /ubuntu
 #d-i tasksel tasksel/first                                       multiselect none
-#d-i pkgsel/upgrade                                          select      none
-#d-i pkgsel/update-policy                                    select      none
-#d-i pkgsel/updatedb                                         boolean     true
 d-i tasksel/first multiselect standard system utilities, OpenSSH server, Basic Ubuntu server
+d-i pkgsel/upgrade                                          select      none
+d-i pkgsel/update-policy                                    select      none
+d-i pkgsel/updatedb                                         boolean     true
 
 ### Partitioning
 ### Partitioning example
