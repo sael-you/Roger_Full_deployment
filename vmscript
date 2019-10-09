@@ -16,7 +16,9 @@ while true; do
 	echo
 	read -p " please enter your preference: [1|2]: " ubver
 	case $ubver in
-		[1]* )  #ask wether create a new pubkey or keep the current one
+		[1]* ) 
+			while true; do
+				#ask wether create a new pubkey or keep the current one
 				echo
 				echo "  [1] do you want to generate a knew ssh public key ?"
 				echo "  [2] do you want to keep the current one ?"
@@ -36,9 +38,16 @@ while true; do
 					git commit -m "new pubkey"
 					git push
 					break;;
+				* )
+					echo "please answer [1] or [2] not [3] or whateve";;
 				esac
+			done
+			while [ -z $vmname ] ; do		
 				read -p "entre your vm name :" vmname
-				echo
+					echo
+					echo "enter a Name for the VM PLEASE"
+				read -p "entre your vm name :" vmnam	
+			done
 				VBoxManage createvm --name $vmname --ostype Ubuntu_64 --register
 				VBoxManage createmedium --filename /Volumes/Storage/goinfre/sael-you/$vmname.vdi --size 8192
 				VBoxManage storagectl $vmname --name SATA --add SATA --controller IntelAhci
@@ -62,5 +71,4 @@ while true; do
 				* ) echo " please answer [1] or [2] not [3] or whatever";;
 	esac
 done
-
 
