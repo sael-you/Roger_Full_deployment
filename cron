@@ -1,1 +1,1 @@
-(crontab -l 2>/dev/null; echo "@reboot /bin/bash /root/roger_script") | crontab -
+(crontab -l 2>/dev/null; echo "@reboot sudo /bin/bash /root/roger_script") | crontab -

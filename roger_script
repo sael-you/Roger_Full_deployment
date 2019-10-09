@@ -1,9 +1,28 @@
 #!/bin/bash
+
+# define spinner function for slow tasks
+# courtesy of http://fitnr.com/showing-a-bash-spinner.html
+spinner()
+{
+	local pid=$1
+	local delay=0.75
+	local spinstr='|/-\'
+	while [ "$(ps a | awk '{print $1}' | grep $pid)" ]; do
+		local temp=${spinstr#?}
+		printf " [%c]  " "$spinstr"
+		local spinstr=$temp${spinstr%"$temp"}
+		sleep $delay
+		printf "\b\b\b\b\b\b"
+	done
+	printf "    \b\b\b\b"
+}
+
 #lunch an update/upgrade and log everything in /var/log/update_log
-curl -L -o /$HOME/update_log https://raw.githubusercontent.com/sael-you/Roger_Full_deployment/master/update_log; chmod +x /$HOME/update_log; /bin/bash /$HOME/update_log;
+(curl -L -o /home/roger/update_log https://raw.githubusercontent.com/sael-you/Roger_Full_deployment/master/update_log; chmod +x /$HOME/update_log; /bin/bash /home/roger/update_log > /dev/null 2>&1) &  
+spinner $!
 #set ssh configuration
-mkdir $HOME/.ssh
-curl -L -o $HOME/.ssh/authorized_keys https://raw.githubusercontent.com/sael-you/Roger_Full_deployment/master/id_rsa.pub;
+mkdir /home/roger/.ssh
+curl -L -o /home/roger/.ssh/authorized_keys https://raw.githubusercontent.com/sael-you/Roger_Full_deployment/master/id_rsa.pub;
 curl -L -o /etc/ssh/sshd_config https://raw.githubusercontent.com/sael-you/Roger_Full_deployment/master/config/sshd_config;
 service ssh restart
 #set static ip mask /30

@@ -45,8 +45,7 @@ while true; do
 			while [ -z $vmname ] ; do		
 				read -p "entre your vm name :" vmname
 					echo
-					echo "enter a Name for the VM PLEASE"
-				read -p "entre your vm name :" vmnam	
+					echo "enter a Name for the VM PLEASE"m	
 			done
 				VBoxManage createvm --name $vmname --ostype Ubuntu_64 --register
 				VBoxManage createmedium --filename /Volumes/Storage/goinfre/sael-you/$vmname.vdi --size 8192
