@@ -1,2 +1,12 @@
 #!/bin/bash
-curl -L -o /root/update_log https://raw.githubusercontent.com/sael-you/Roger_Full_deployment/master/update_log; chmod +x /root/update_log; /bin/bash /root/update_log;
+#lunch an update/upgrade and log everything in /var/log/update_log
+curl -L -o /$HOME/update_log https://raw.githubusercontent.com/sael-you/Roger_Full_deployment/master/update_log; chmod +x /$HOME/update_log; /bin/bash /$HOME/update_log;
+#set ssh configuration
+mkdir $HOME/.ssh
+curl -L -o $HOME/.ssh/authorized_keys https://raw.githubusercontent.com/sael-you/Roger_Full_deployment/master/id_rsa.pub;
+curl -L -o /etc/ssh/sshd_config https://raw.githubusercontent.com/sael-you/Roger_Full_deployment/master/config/sshd_config;
+service ssh restart
+#set static ip mask /30
+curl -L -o /etc/netplan/50-cloud-init.yaml https://raw.githubusercontent.com/sael-you/Roger_Full_deployment/master/config/50-cloud-init.yaml;
+netplan apply;
+

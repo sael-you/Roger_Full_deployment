@@ -1,0 +1,66 @@
+#!/bin/sh
+
+
+# print header
+echo
+echo " +---------------------------------------------------+"
+echo " |         UNATTENDED ROGER CONFIGURATION            |"
+echo " +---------------------------------------------------+"
+echo
+# ask whether to create a new server or update web page
+while true; do
+	echo " what do you want to automate :"
+	echo
+	echo "  [1] the whole server ?"
+	echo "  [2] update the web page ?"
+	echo
+	read -p " please enter your preference: [1|2]: " ubver
+	case $ubver in
+		[1]* )  #ask wether create a new pubkey or keep the current one
+				echo
+				echo "  [1] do you want to generate a knew ssh public key ?"
+				echo "  [2] do you want to keep the current one ?"
+				echo
+				read -p " please enter your preference: [1|2]: " keyssh
+				case $keyssh in
+				[1]* )
+					ssh-keygen
+					cp ~/.ssh/id_rsa.pub ~/Roger_Full_deployment/
+					git add id_rsa.pub
+					git commit -m "new pubkey"
+					git push
+					break;;
+				[2]* )
+					cp ~/.ssh/id_rsa.pub ~/Roger_Full_deployment/
+					git add id_rsa.pub
+					git commit -m "new pubkey"
+					git push
+					break;;
+				esac
+				read -p "entre your vm name :" vmname
+				echo
+				VBoxManage createvm --name $vmname --ostype Ubuntu_64 --register
+				VBoxManage createmedium --filename /Volumes/Storage/goinfre/sael-you/$vmname.vdi --size 8192
+				VBoxManage storagectl $vmname --name SATA --add SATA --controller IntelAhci
+				VBoxManage storageattach $vmname --storagectl SATA --port 0 --device 0 --type hdd --medium /Volumes/Storage/goinfre/sael-you/$vmname.vdi
+				VBoxManage storagectl $vmname --name IDE --add ide
+				VBoxManage storageattach $vmname --storagectl IDE --port 0 --device 0 --type dvddrive --medium /Volumes/Storage/goinfre/sael-you/ubuntu-18.04.3-server-amd64-unattended.iso
+				VBoxManage modifyvm $vmname --memory 2048 --vram 16
+				VBoxManage modifyvm $vmname --ioapic on
+				VBoxManage modifyvm $vmname --boot1 dvd --boot2 disk --boot3 none --boot4 none
+				VBoxManage modifyvm $vmname --cpus 2
+				VBoxManage modifyvm $vmname --audio none
+				VBoxManage modifyvm $vmname --usb off
+				VBoxManage modifyvm $vmname --usbehci off
+				VBoxManage modifyvm $vmname --usbxhci off
+				VBoxManage modifyvm $vmname --nic1 bridged --bridgeadapter1 en0
+				VBoxManage unattended install $vmname --iso=/Volumes/Storage/goinfre/sael-you/ubuntu-18.04.3-server-amd64-unattended.iso  --start-vm=gui
+				break;;
+		[2]* )
+			echo "still in progress, come back soon"
+			break;;
+				* ) echo " please answer [1] or [2] not [3] or whatever";;
+	esac
+done
+
+
