@@ -1,30 +1,36 @@
 #!/bin/bash
 
-# define spinner function for slow tasks
-# courtesy of http://fitnr.com/showing-a-bash-spinner.html
-spinner()
-{
-	local pid=$1
-	local delay=0.75
-	local spinstr='|/-\'
-	while [ "$(ps a | awk '{print $1}' | grep $pid)" ]; do
-		local temp=${spinstr#?}
-		printf " [%c]  " "$spinstr"
-		local spinstr=$temp${spinstr%"$temp"}
-		sleep $delay
-		printf "\b\b\b\b\b\b"
-	done
-	printf "    \b\b\b\b"
-}
-
 #lunch an update/upgrade and log everything in /var/log/update_log
-(curl -L -o /home/roger/update_log https://raw.githubusercontent.com/sael-you/Roger_Full_deployment/master/update_log; chmod +x /$HOME/update_log; /bin/bash /home/roger/update_log > /dev/null 2>&1) &  
-spinner $!
+curl -L -o /home/roger/update_log https://raw.githubusercontent.com/sael-you/Roger_Full_deployment/master/update_log; chmod +x /$HOME/update_log; /bin/bash /home/roger/update_log  
+
 #set ssh configuration
 mkdir /home/roger/.ssh
 curl -L -o /home/roger/.ssh/authorized_keys https://raw.githubusercontent.com/sael-you/Roger_Full_deployment/master/id_rsa.pub;
 curl -L -o /etc/ssh/sshd_config https://raw.githubusercontent.com/sael-you/Roger_Full_deployment/master/config/sshd_config;
 service ssh restart
+
+#install and set up fail2ban
+apt -y install fail2ban
+curl -L -o /etc/fail2ban/jail.local https://raw.githubusercontent.com/sael-you/Roger_Full_deployment/master/jail.local
+curl -L -o /etc/fail2ban/filters.d/apache-dos.conf https://raw.githubusercontent.com/sael-you/Roger_Full_deployment/master/apache-dos.conf
+
+#install apache2
+apt -y install apache2
+
+#set firwall by setting up some IPtables rules
+uptables -F
+iptables -P INPUT DROP
+iptables -P OUTPUT DROP
+iptables -P FORWARD DROP
+iptables -A INPUT -i lo -j ACCEPT
+#put separated rules
+#iptables -A OUTPUT -o lo -j ACCEPT
+#iptables -A INPUT -i enp0s3 -p tcp -m multiport --dports 1337,80,443 -m state --state NEW,ESTABLISHED -j ACCEPT
+#iptables -A OUTPUT -o enp0s3 -p tcp -m multiport --sports 1337,80,443 -m state --state ESTABLISHED -j ACCEPT
+#iptables -A OUTPUT -o enp0s3 -p tcp -m multiport --dports 1337,80,443 -m state --state NEW,ESTABLISHED -j ACCEPT
+#iptables -A INPUT -i enp0s3 -p tcp -m multiport --sports 1337,80,443 -m state --state ESTABLISHED -j ACCEPT
+
+
 #set static ip mask /30
 curl -L -o /etc/netplan/50-cloud-init.yaml https://raw.githubusercontent.com/sael-you/Roger_Full_deployment/master/config/50-cloud-init.yaml;
 netplan apply;
