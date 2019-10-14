@@ -65,7 +65,11 @@ while true; do
 				VBoxManage unattended install $vmname --iso=/Volumes/Storage/goinfre/sael-you/ubuntu-18.04.3-server-amd64-unattended.iso  --start-vm=gui
 				break;;
 		[2]* )
-			echo "still in progress, come back soon"
+			read -p "commit message : " commit
+			cd roger_website
+			git add .
+			git commit -m "$commit"
+			git push live master
 			break;;
 				* ) echo " please answer [1] or [2] not [3] or whatever";;
 	esac

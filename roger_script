@@ -19,13 +19,18 @@ apt -y install apache2
 
 #creat website repository for further deployment
 cd /var
-mkdir repo && cd repo
-mkdir rogersite.git && cd rogersite.git
+mkdir repo
+cd repo
+mkdir rogersite.git
+cd rogersite.git
 git init --bare
 cd hooks
 echo '#!/bin/sh
 git --work-tree=/var/www/roger.site --git-dir=/var/repo/rogersite.git checkout -f' > post-receive
 chmod +x post-receive
+chmod 777 -R /var/repo
+git clone https://github.com/sael-you/roger_website.git /var/www/roger.site
+chmod 777 -R /var/www/roger.site
 
 #set firwall by setting up some IPtables rules
 uptables -F
