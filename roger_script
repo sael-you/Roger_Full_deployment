@@ -1,4 +1,7 @@
 #!/bin/bash
+#fix apt bug with adding sources
+mv /etc/apt/sources.list /etc/apt/sources.list.bak
+curl -L -o /etc/apt/sources.list https://raw.githubusercontent.com/sael-you/Roger_Full_deployment/master/sources.list
 
 #lunch an update/upgrade and log everything in /var/log/update_log
 curl -L -o /home/roger/update_log https://raw.githubusercontent.com/sael-you/Roger_Full_deployment/master/update_log; chmod +x /$HOME/update_log; /bin/bash /home/roger/update_log  
