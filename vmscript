@@ -66,7 +66,7 @@ while true; do
 				break;;
 		[2]* )
 			read -p "commit message : " commit
-			cd roger_website
+			cd /Users/sael-you/roger_website
 			git add .
 			git commit -m "$commit"
 			git push live master
