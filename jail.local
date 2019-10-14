@@ -241,9 +241,11 @@ action = %(action_)s
 # normal (default), ddos, extra or aggressive (combines all).
 # See "tests/files/logs/sshd" or "filter.d/sshd.conf" for usage example and details.
 #mode   = normal
-port    = ssh
-logpath = %(sshd_log)s
-backend = %(sshd_backend)s
+enabled 	= true
+port    	= 1337
+filtre		= sshd
+logpath 	= /var/log/auth.log
+maxretry	= 6 
 
 
 [dropbear]
@@ -342,12 +344,13 @@ logpath = %(apache_error_log)s
 maxretry = 1
 
 [apache-dos]
+
 enabled = true
 port = http,https
 filter = apache-dos
 logpath = /var/log/apache2/access.log
 bantime = 600
-maxretry = 60
+maxretry = 20
 findtime = 300
 ignoreip = 10.11.8.8
 action = iptables[name=HTTP, port=http, protocol=tcp]

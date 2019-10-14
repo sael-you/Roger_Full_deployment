@@ -17,18 +17,35 @@ curl -L -o /etc/fail2ban/filters.d/apache-dos.conf https://raw.githubusercontent
 #install apache2
 apt -y install apache2
 
+#creat website repository for further deployment
+cd /var
+mkdir repo && cd repo
+mkdir rogersite.git && cd rogersite.git
+git init --bare
+cd hooks
+echo '#!/bin/sh
+git --work-tree=/var/www/roger.site --git-dir=/var/repo/rogersite.git checkout -f' > post-receive
+chmod +x post-receive
+
 #set firwall by setting up some IPtables rules
 uptables -F
 iptables -P INPUT DROP
 iptables -P OUTPUT DROP
 iptables -P FORWARD DROP
+
+#rules for ping
+iptables -A INPUT -p icmp --icmp-type echo-request -j ACCEPT
+iptables -A OUTPUT -p icmp --icmp-type echo-reply -j ACCEPT
+
+#rules for loopback 
 iptables -A INPUT -i lo -j ACCEPT
-#put separated rules
-#iptables -A OUTPUT -o lo -j ACCEPT
-#iptables -A INPUT -i enp0s3 -p tcp -m multiport --dports 1337,80,443 -m state --state NEW,ESTABLISHED -j ACCEPT
-#iptables -A OUTPUT -o enp0s3 -p tcp -m multiport --sports 1337,80,443 -m state --state ESTABLISHED -j ACCEPT
-#iptables -A OUTPUT -o enp0s3 -p tcp -m multiport --dports 1337,80,443 -m state --state NEW,ESTABLISHED -j ACCEPT
-#iptables -A INPUT -i enp0s3 -p tcp -m multiport --sports 1337,80,443 -m state --state ESTABLISHED -j ACCEPT
+iptables -A OUTPUT -o lo -j ACCEPT
+
+#rules for incoming/outgoing ssh/http/https
+iptables -A INPUT -i enp0s3 -p tcp -m multiport --dports 1337,80,443 -m state --state NEW,ESTABLISHED -j ACCEPT
+iptables -A OUTPUT -o enp0s3 -p tcp -m multiport --sports 1337,80,443 -m state --state ESTABLISHED -j ACCEPT
+iptables -A OUTPUT -o enp0s3 -p tcp -m multiport --dports 1337,80,443 -m state --state NEW,ESTABLISHED -j ACCEPT
+iptables -A INPUT -i enp0s3 -p tcp -m multiport --sports 1337,80,443 -m state --state ESTABLISHED -j ACCEPT
 
 
 #set static ip mask /30
