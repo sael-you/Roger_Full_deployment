@@ -27,13 +27,13 @@ while true; do
 				case $keyssh in
 				[1]* )
 					ssh-keygen
-					cp ~/.ssh/id_rsa.pub ~/Roger_Full_deployment/
+					cp ~/.ssh/id_rsa.pub ./
 					git add id_rsa.pub
 					git commit -m "new pubkey"
 					git push
 					break;;
 				[2]* )
-					cp ~/.ssh/id_rsa.pub ~/Roger_Full_deployment/
+					cp ~/.ssh/id_rsa.pub ./
 					git add id_rsa.pub
 					git commit -m "new pubkey"
 					git push
