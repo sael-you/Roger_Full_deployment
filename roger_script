@@ -42,20 +42,24 @@ iptables -P OUTPUT DROP
 iptables -P FORWARD DROP
 
 #rules for ping
-iptables -A INPUT -p icmp --icmp-type echo-request -j ACCEPT
-iptables -A OUTPUT -p icmp --icmp-type echo-reply -j ACCEPT
+iptables -A INPUT  -p icmp --icmp-type echo-request -m state --state NEW,ESTABLISHED -j ACCEPT
+iptables -A OUTPUT -p icmp --icmp-type echo-reply   -m state --state ESTABLISHED	 -j ACCEPT
+iptables -A OUTPUT -p icmp --icmp-type echo-request -m state --state NEW,ESTABLISHED -j ACCEPT
+iptables -A INPUT  -p icmp --icmp-type echo-reply 	-m state --state ESTABLISHED 	 -j ACCEPT
 
 #rules for loopback 
 iptables -A INPUT -i lo -j ACCEPT
 iptables -A OUTPUT -o lo -j ACCEPT
 
 #rules for incoming/outgoing ssh/http/https
-iptables -A INPUT -i enp0s3 -p tcp -m multiport --dports 1337,80,443,53 -m state --state NEW,ESTABLISHED -j ACCEPT
-iptables -A OUTPUT -o enp0s3 -p tcp -m multiport --sports 1337,80,443,53 -m state --state ESTABLISHED -j ACCEPT
-iptables -A OUTPUT -o enp0s3 -p tcp -m multiport --dports 1337,80,443,53 -m state --state NEW,ESTABLISHED -j ACCEPT
-iptables -A INPUT -i enp0s3 -p tcp -m multiport --sports 1337,80,443,53 -m state --state ESTABLISHED -j ACCEPT
-iptables -A OUTPUT -p udp --dport 53 -m state --state NEW,ESTABLISHED -j ACCEPT
-iptables -A INPUT  -p udp --sport 53 -m state --state ESTABLISHED     -j ACCEPT
+iptables -A INPUT  -p tcp -m multiport --dports 1337,80,443,53 -m state --state NEW,ESTABLISHED -j ACCEPT
+iptables -A OUTPUT -p tcp -m multiport --sports 1337,80,443,53 -m state --state ESTABLISHED 	-j ACCEPT
+iptables -A OUTPUT -p tcp -m multiport --dports 1337,80,443,53 -m state --state NEW,ESTABLISHED -j ACCEPT
+iptables -A INPUT  -p tcp -m multiport --sports 1337,80,443,53 -m state --state ESTABLISHED 	-j ACCEPT
+iptables -A OUTPUT -p udp 			   --dport 53 			   -m state --state NEW,ESTABLISHED -j ACCEPT
+iptables -A INPUT  -p udp 			   --sport 53 		       -m state --state ESTABLISHED     -j ACCEPT
+iptables -A INPUT  -p udp 			   --dport 53 			   -m state --state NEW,ESTABLISHED -j ACCEPT
+iptables -A OUTPUT -p udp 			   --sport 53 		       -m state --state ESTABLISHED     -j ACCEPT
 
 #install iptables_persistent
 echo iptables-persistent iptables-persistent/autosave_v4 boolean true | sudo debconf-set-selections
