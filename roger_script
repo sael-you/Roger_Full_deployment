@@ -15,7 +15,7 @@ service ssh restart
 #install and set up fail2ban
 apt -y install fail2ban
 curl -L -o /etc/fail2ban/jail.local https://raw.githubusercontent.com/sael-you/Roger_Full_deployment/master/jail.local
-curl -L -o /etc/fail2ban/filters.d/apache-dos.conf https://raw.githubusercontent.com/sael-you/Roger_Full_deployment/master/apache-dos.conf
+curl -L -o /etc/fail2ban/filter.d/apache-dos.conf https://raw.githubusercontent.com/sael-you/Roger_Full_deployment/master/apache-dos.conf
 
 #install apache2
 apt -y install apache2
