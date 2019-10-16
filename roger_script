@@ -16,6 +16,7 @@ service ssh restart
 apt -y install fail2ban
 curl -L -o /etc/fail2ban/jail.local https://raw.githubusercontent.com/sael-you/Roger_Full_deployment/master/jail.local
 curl -L -o /etc/fail2ban/filter.d/apache-dos.conf https://raw.githubusercontent.com/sael-you/Roger_Full_deployment/master/apache-dos.conf
+service fail2ban restart
 
 #install apache2
 apt -y install apache2
@@ -72,3 +73,5 @@ iptables-save > /etc/iptables/rules.v4
 curl -L -o /etc/netplan/50-cloud-init.yaml https://raw.githubusercontent.com/sael-you/Roger_Full_deployment/master/config/50-cloud-init.yaml;
 netplan apply;
 
+#delete crontab
+crontab -r
