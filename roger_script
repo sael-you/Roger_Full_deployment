@@ -12,14 +12,14 @@ curl -L -o /home/roger/.ssh/authorized_keys https://raw.githubusercontent.com/sa
 curl -L -o /etc/ssh/sshd_config https://raw.githubusercontent.com/sael-you/Roger_Full_deployment/master/config/sshd_config;
 service ssh restart
 
+#install apache2
+apt -y install apache2
+
 #install and set up fail2ban
 apt -y install fail2ban
 curl -L -o /etc/fail2ban/jail.local https://raw.githubusercontent.com/sael-you/Roger_Full_deployment/master/jail.local
 curl -L -o /etc/fail2ban/filter.d/apache-dos.conf https://raw.githubusercontent.com/sael-you/Roger_Full_deployment/master/apache-dos.conf
 service fail2ban restart
-
-#install apache2
-apt -y install apache2
 
 #creat website repository for further deployment
 cd /var
