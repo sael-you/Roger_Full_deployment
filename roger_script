@@ -36,35 +36,30 @@ chmod 777 -R /var/repo
 git clone https://github.com/sael-you/roger_website.git /var/www/roger.site
 chmod 777 -R /var/www/roger.site
 
-#set firwall by setting up some IPtables rules
-uptables -F
+#set iptables rules port/portscan
+iptables -F
 
-# flooding of RST packets, smurf attack Rejection
-iptables -A INPUT -p tcp -m tcp --tcp-flags RST RST -m limit --limit 2/second --limit-burst 2 -j ACCEPT
+#Log attack
+iptables -A INPUT -p tcp --tcp-flags ALL NONE -m limit --limit 3/m --limit-burst 5 -j LOG --log-prefix "Firewall> Null scan "
+# Drop and blacklist for 60 seconds IP of attacker
+iptables -A INPUT -p tcp --tcp-flags ALL NONE  -m recent --name blacklist_60 --set -m comment --comment "Drop/Blacklist Null scan" -j DROP
+iptables   -A INPUT -p tcp ! --syn -m state --state NEW  -m comment --comment "Drop TCP connection not starting by SYN" -j DROP
+# log  probable sS and full connect tcp scan
+iptables -A INPUT -p tcp  -m multiport --dports 23,79,53,80,443,22 --tcp-flags ALL SYN -m limit --limit 3/m --limit-burst 5 -j LOG --log-prefix "Firewall>SYN scan trap:"
+# blacklist for three minuts
+iptables -A  INPUT -p tcp  -m multiport --dports 23,79,53,80,443,22 --tcp-flags ALL SYN -m recent --name blacklist_180 --set -j DROP
 
-# Protecting portscans
-# Attacking IP will be locked for 24 hours (3600 x 24 = 86400 Seconds)
-iptables -A INPUT -m recent --name portscan --rcheck --seconds 86400 -j DROP
-iptables -A FORWARD -m recent --name portscan --rcheck --seconds 86400 -j DROP
-
-# Remove attacking IP after 24 hours
-iptables -A INPUT -m recent --name portscan --remove
-iptables -A FORWARD -m recent --name portscan --remove
-
-# These rules add scanners to the portscan list, and log the attempt.
-iptables -A INPUT -p tcp -m tcp --dport 139 -m recent --name portscan --set -j LOG --log-prefix "portscan:"
-iptables -A INPUT -p tcp -m tcp --dport 139 -m recent --name portscan --set -j DROP
-
-iptables -A FORWARD -p tcp -m tcp --dport 139 -m recent --name portscan --set -j LOG --log-prefix "portscan:"
-iptables -A FORWARD -p tcp -m tcp --dport 139 -m recent --name portscan --set -j DROP
-
+iptables -A INPUT -p udp  --dport 53 -m limit --limit 6/h --limit-burst 1 -m length --length 0:28 -j LOG --log-prefix "Firewall>0 length udp "
+iptables -A INPUT -p udp --dport 53 -m length --length 0:28 -m comment --comment "Drop UDP packet with no content" -j DROP
 #rules for ping
 iptables -A INPUT  -p icmp --icmp-type echo-request -m state --state NEW,ESTABLISHED -j ACCEPT
 
-#rules for loopback 
+#rules for loopback
 iptables -A INPUT -i lo -j ACCEPT
 
 #rules for incoming ssh/http/https
+iptables -A INPUT -p tcp --dport 1337 -s 10.11.8.8 -j ACCEPT
+iptables -A INPUT -p tcp --dport 1337 -j DROP
 iptables -A INPUT  -p tcp -m multiport --dports 1337,80,443,53 -m state --state NEW,ESTABLISHED -j ACCEPT
 iptables -A INPUT  -p udp 			   --dport 53 			   -m state --state NEW,ESTABLISHED -j ACCEPT
 iptables -A INPUT -j DROP
