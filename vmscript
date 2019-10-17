@@ -26,7 +26,7 @@ while true; do
 				read -p " please enter your preference: [1|2]: " keyssh
 				case $keyssh in
 				[1]* )
-					echo -e 'y\n' | ssh-keygen -f $HOME/.ssh/id_rsa -t rsa -N ''
+					yes y | ssh-keygen -t rsa -f "$HOME/.ssh/id_rsa" -N '' >/dev/null
 					cp ~/.ssh/id_rsa.pub ./
 					git add id_rsa.pub
 					git commit -m "new pubkey"
