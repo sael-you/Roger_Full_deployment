@@ -68,7 +68,7 @@ iptables -A INPUT -j DROP
 echo iptables-persistent iptables-persistent/autosave_v4 boolean true | sudo debconf-set-selections
 echo iptables-persistent iptables-persistent/autosave_v6 boolean true | sudo debconf-set-selections
 apt -y install iptables-persistent
-service iptables-persistent start
+service netfilter-persistent start
 iptables-save > /etc/iptables/rules.v4
 
 #set static ip mask /30
