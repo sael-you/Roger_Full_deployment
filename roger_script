@@ -59,8 +59,7 @@ iptables -A INPUT -i lo -j ACCEPT
 
 #rules for incoming ssh/http/https
 iptables -A INPUT -p tcp --dport 1337 -s 10.11.8.8 -j ACCEPT
-iptables -A INPUT -p tcp --dport 1337 -j DROP
-iptables -A INPUT  -p tcp -m multiport --dports 1337,80,443,53 -m state --state NEW,ESTABLISHED -j ACCEPT
+iptables -A INPUT  -p tcp -m multiport --dports 80,443,53 -m state --state NEW,ESTABLISHED -j ACCEPT
 iptables -A INPUT  -p udp --dport 53 -s 10.11.8.8 -m state --state NEW,ESTABLISHED -j ACCEPT
 iptables -A INPUT -j DROP
 
