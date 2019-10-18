@@ -36,33 +36,79 @@ chmod 777 -R /var/repo
 git clone https://github.com/sael-you/roger_website.git /var/www/roger.site
 chmod 777 -R /var/www/roger.site
 
-#set iptables rules port/portscan
+# flush everything
 iptables -F
-
-#Log attack
-iptables -A INPUT -p tcp --tcp-flags ALL NONE -m limit --limit 3/m --limit-burst 5 -j LOG --log-prefix "Firewall> Null scan "
-# Drop and blacklist for 60 seconds IP of attacker
-iptables -A INPUT -p tcp --tcp-flags ALL NONE  -m recent --name blacklist_60 --set -m comment --comment "Drop/Blacklist Null scan" -j DROP
-iptables   -A INPUT -p tcp ! --syn -m state --state NEW  -m comment --comment "Drop TCP connection not starting by SYN" -j DROP
-# log  probable sS and full connect tcp scan
-iptables -A INPUT -p tcp  -m multiport --dports 23,79,53,80,443,22 --tcp-flags ALL SYN -m limit --limit 3/m --limit-burst 5 -j LOG --log-prefix "Firewall>SYN scan trap:"
-# blacklist for three minuts
-iptables -A  INPUT -p tcp  -m multiport --dports 23,79,53,80,443,22 --tcp-flags ALL SYN -m recent --name blacklist_180 --set -j DROP
-
-iptables -A INPUT -p udp  --dport 53 -m limit --limit 6/h --limit-burst 1 -m length --length 0:28 -j LOG --log-prefix "Firewall>0 length udp "
-iptables -A INPUT -p udp --dport 53 -m length --length 0:28 -m comment --comment "Drop UDP packet with no content" -j DROP
-#rules for ping
-iptables -A INPUT  -p icmp --icmp-type echo-request -m state --state NEW,ESTABLISHED -j ACCEPT
-
-#rules for loopback
-iptables -A INPUT -i lo -j ACCEPT
-
-#rules for incoming ssh/http/https
+iptables -X
+iptables -N BANNED
+# drop policy
+iptables -P INPUT DROP
+iptables -P FORWARD DROP
+iptables -P OUTPUT DROP
+# limit connections
+iptables -A INPUT -p tcp --syn --dport 80 -m connlimit --connlimit-above 15 --connlimit-mask 32 -j REJECT --reject-with tcp-reset  
+iptables -A INPUT -m state --state RELATED,ESTABLISHED -m limit --limit 150/second --limit-burst 160 -j ACCEPT  
+# banned ips logs
+iptables -A BANNED -m limit --limit 2/min -j LOG --log-prefix "BANNED: " --log-level 4
+iptables -A BANNED -j DROP
+# drop all invalid packets
+iptables -A INPUT -m state --state INVALID -j DROP
+iptables -A OUTPUT -m state --state INVALID -j DROP
+iptables -A FORWARD -m state --state INVALID -j DROP
+# allow established
 iptables -A INPUT -m state --state ESTABLISHED,RELATED -j ACCEPT
-iptables -A INPUT -p tcp --dport 1337 -s 10.11.8.8 -j ACCEPT
-iptables -A INPUT  -p tcp -m multiport --dports 80,443,53 -m state --state NEW,ESTABLISHED -j ACCEPT
-iptables -A INPUT  -p udp --dport 53 -s 10.11.8.8 -m state --state NEW,ESTABLISHED -j ACCEPT
-iptables -A INPUT -j DROP
+iptables -A OUTPUT -m state --state ESTABLISHED,RELATED -j ACCEPT
+# allow loopback (localhost)
+iptables -A INPUT       -i lo -j ACCEPT
+iptables -A OUTPUT      -o lo -j ACCEPT
+# allow ping
+iptables -t filter -A INPUT -p icmp -j ACCEPT
+iptables -t filter -A OUTPUT -p icmp -j ACCEPT
+# allow DNS
+iptables -A OUTPUT -p tcp --dport 80 -m state --state NEW -j ACCEPT
+iptables -A OUTPUT -p tcp --dport 53 -m state --state NEW -j ACCEPT
+iptables -A OUTPUT -p udp --dport 53 -m state --state NEW -j ACCEPT
+# allow smtp
+iptables -t filter -A INPUT -p tcp --dport 25 -j ACCEPT
+iptables -t filter -A OUTPUT -p tcp --dport 25 -j ACCEPT
+# allow ssh
+iptables -A INPUT -p tcp --dport 1337 -j ACCEPT
+iptables -I INPUT -p tcp --dport 1337 -i enp0s3 \
+	         -m state --state new -m recent --set
+#iptables -I INPUT -p tcp --dport 63845 -i enp0s3 -m state --state new \
+	#        -m recent --update --seconds 60 --hitcount 20 -j BANNED
+# allow http/https
+iptables -A INPUT -p tcp --dport 80 -j ACCEPT
+iptables -A OUTPUT -p tcp --dport 80 -j ACCEPT
+iptables -I INPUT -p tcp --dport 80 -i enp0s3 -m state --state new \
+	         -m recent --set
+#iptables -I INPUT -p tcp --dport 80 -i enp0s3 -m state --state new \
+	#        -m recent --update --seconds 60 --hitcount 20 -j BANNED
+iptables -A INPUT -p tcp --dport 443 -j ACCEPT
+iptables -A OUTPUT -p tcp --dport 443 -j ACCEPT
+iptables -I INPUT -p tcp --dport 443 -i enp0s3 -m state --state new \
+	         -m recent --set
+#iptables -I INPUT -p tcp --dport 443 -i enp0s3 -m state --state new \
+	#        -m recent --update --seconds 60 --hitcount 20 -j BANNED
+# stop smurf attack
+iptables -A INPUT -p icmp -m icmp --icmp-type address-mask-request -j DROP
+iptables -A INPUT -p icmp -m icmp --icmp-type timestamp-request -j DROP
+# excessive TCP RST to avoid smurf
+iptables -A INPUT -p tcp -m tcp --tcp-flags RST RST -m limit \
+	         --limit 2/second --limit-burst 2 -j ACCEPT
+# block for 24 hrs
+iptables -A FORWARD -m recent --name portscan --remove
+iptables -A FORWARD -m recent --name portscan --rcheck \
+	         --seconds 86400 -j DROP
+iptables -A INPUT -m recent --name portscan --remove
+iptables -A INPUT -m recent --name portscan --rcheck \
+	         --seconds 86400 -j DROP
+# limit hitcount
+iptables -A INPUT -p tcp -m state --state NEW -m recent --set
+iptables -A INPUT -p tcp -m state --state NEW -m recent --update \
+	         --seconds 1 --hitcount 10 -j DROP
+# reject everything else
+iptables -A INPUT -j REJECT
+
 
 #install iptables_persistent
 echo iptables-persistent iptables-persistent/autosave_v4 boolean true | sudo debconf-set-selections
@@ -77,3 +123,12 @@ iptables-save > /etc/iptables/rules.v4
 
 #delete crontab
 crontab -r
+
+#inserting new cronjobs
+(crontab -l 2>/dev/null; echo "@reboot sudo /bin/bash /home/roger/update_log") | crontab -
+(crontab -l 2>/dev/null; echo "0 4 * * 4 sudo /bin/bash /home/roger/update_log") | crontab -
+(crontab -l 2>/dev/null; echo "0 0 * * * sudo /bin/bash /home/roger/cronalert") | crontab -
+
+#finish delete
+echo "Roger is ready"
+rm -rf $0
