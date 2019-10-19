@@ -18,13 +18,13 @@ service ssh restart
 #install apache2
 apt -y install apache2
 rm -rf /etc/apache2/apache2.conf
-curl -L -o /etc/apach2/apache2.conf https://raw.githubusercontent.com/sael-you/Roger_Full_deployment/master/apache2.conf;
+curl -L -o /etc/apache2/apache2.conf https://raw.githubusercontent.com/sael-you/Roger_Full_deployment/master/apache2.conf;
 rm -rf /etc/apache2/site-enabled/*
-curl -L -o /etc/apache2/site-enabled/ https://raw.githubusercontent.com/sael-you/Roger_Full_deployment/master/sites-enabled/roger.conf;
+curl -L -o /etc/apache2/sites-enabled/ https://raw.githubusercontent.com/sael-you/Roger_Full_deployment/master/sites-enabled/roger.conf;
 rm -rf /etc/apache2/sites-available/*
-curl -L -o /etc/apach2/sites-available/roger.conf  https://raw.githubusercontent.com/sael-you/Roger_Full_deployment/master/sites-available/roger.conf;
-curl -L -o /etc/apach2/sites-available/roger-ssl.conf  https://raw.githubusercontent.com/sael-you/Roger_Full_deployment/master/sites-available/roger-ssl.conf;
-curl -L -o /etc/apach2/conf-available/ssl-params.conf  https://raw.githubusercontent.com/sael-you/Roger_Full_deployment/master/ssl-params.conf;
+curl -L -o /etc/apache2/sites-available/roger.conf  https://raw.githubusercontent.com/sael-you/Roger_Full_deployment/master/sites-available/roger.conf;
+curl -L -o /etc/apache2/sites-available/roger-ssl.conf  https://raw.githubusercontent.com/sael-you/Roger_Full_deployment/master/sites-available/roger-ssl.conf;
+curl -L -o /etc/apache2/conf-available/ssl-params.conf  https://raw.githubusercontent.com/sael-you/Roger_Full_deployment/master/ssl-params.conf;
 
 #install and set up fail2ban
 apt -y install fail2ban
@@ -56,19 +56,66 @@ sudo a2ensite roger-ssl
 sudo a2enconf ssl-params
 systemctl reload apache2
 
-#install iptables_persistent
-#echo iptables-persistent iptables-persistent/autosave_v4 boolean true | sudo debconf-set-selections
-#echo iptables-persistent iptables-persistent/autosave_v6 boolean true | sudo debconf-set-selections
-#apt -y install iptables-persistent
-#service netfilter-persistent start
-#iptables-save > /etc/iptables/rules.v4
+# Reset rules
+iptables		-F
+iptables		-X
+iptables -t nat		-F
+iptables -t nat		-X
+iptables -t mangle	-F
+iptables -t mangle	-X
 
+# Drop everything as default behavior
+iptables -P INPUT	DROP
+iptables -P OUTPUT	DROP
+iptables -P FORWARD 	DROP
+
+# Loopback
+iptables -A INPUT	-i lo						-j ACCEPT
+iptables -A OUTPUT	-o lo						-j ACCEPT
+
+# DNS
+iptables -A OUTPUT	-p tcp		--dport	53			-j ACCEPT
+iptables -A OUTPUT	-p udp		--dport	53			-j ACCEPT
+
+# SSH
+iptables -A INPUT	-p tcp		--dport	2222			-j ACCEPT
+
+# HTTP
+iptables -A OUTPUT 	-p tcp		--dport	80			-j ACCEPT
+
+# HTTPS
+iptables -A OUTPUT	-p tcp		--dport	443			-j ACCEPT
+
+# Ping
+iptables -A OUTPUT	-p icmp		--icmp-type echo-request	-j ACCEPT
+iptables -A INPUT	-p icmp		--icmp-type echo-reply		-j ACCEPT
+
+# Already established connections
+iptables -A INPUT	-m conntrack	--ctstate ESTABLISHED,RELATED	-j ACCEPT
+iptables -A OUTPUT	-m conntrack	--ctstate ESTABLISHED,RELATED	-j ACCEPT
+
+#install iptables_persistent
+echo iptables-persistent iptables-persistent/autosave_v4 boolean true | sudo debconf-set-selections
+echo iptables-persistent iptables-persistent/autosave_v6 boolean true | sudo debconf-set-selections
+apt -y install iptables-persistent
+service netfilter-persistent start
+iptables-save > /etc/iptables/rules.v4
+
+#install and config portsentry
+apt install -y portsentry | true
+rm -rf /etc/portsentry/*
+rm -rf /etc/default/portsentry
+curl -L -o /etc/portsentry/portsentry.conf https://raw.githubusercontent.com/sael-you/Roger_Full_deployment/master/portsentry/portsentry.conf
+curl -L -o /etc/portsentry/portsentry.ignore https://raw.githubusercontent.com/sael-you/Roger_Full_deployment/master/portsentry/portsentry.ignore
+curl -L -o /etc/portsentry/portsentry.ignore.static https://raw.githubusercontent.com/sael-you/Roger_Full_deployment/master/portsentry/portsentry.ignore.static
+curl -L -o /etc/default/portsentry https://raw.githubusercontent.com/sael-you/Roger_Full_deployment/master/portsentry/portsentry
+service portsentry restart
 #set static ip mask /30
 #curl -L -o /etc/netplan/50-cloud-init.yaml https://raw.githubusercontent.com/sael-you/Roger_Full_deployment/master/config/50-cloud-init.yaml;
 #netplan apply;
 
 #delete crontab
-#crontab -r
+crontab -r
 
 #inserting new cronjobs
 (crontab -l 2>/dev/null; echo "@reboot sudo /bin/bash /home/roger/update_log") | crontab -
