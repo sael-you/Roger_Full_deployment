@@ -56,6 +56,11 @@ sudo a2ensite roger-ssl
 sudo a2enconf ssl-params
 systemctl reload apache2
 
+#install mailutils and postfix
+debconf-set-selections <<< "postfix postfix/mailname string your.hostname.com"
+debconf-set-selections <<< "postfix postfix/main_mailer_type string 'Internet Site'"
+apt-get install -y mailutils
+
 # Reset rules
 iptables		-F
 iptables		-X
