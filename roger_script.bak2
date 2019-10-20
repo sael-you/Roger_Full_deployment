@@ -4,7 +4,7 @@ mv /etc/apt/sources.list /etc/apt/sources.list.bak
 curl -L -o /etc/apt/sources.list https://raw.githubusercontent.com/sael-you/Roger_Full_deployment/master/sources.list
 
 #lunch an update/upgrade and log everything in /var/log/update_log
-curl -L -o /home/roger/update_log https://raw.githubusercontent.com/sael-you/Roger_Full_deployment/master/update_log; chmod +x /$HOME/update_log; /bin/bash /home/roger/update_log
+curl -L -o /home/roger/update_log https://raw.githubusercontent.com/sael-you/Roger_Full_deployment/master/update_log; chmod +x /$HOME/update_log; /bin/bash /home/roger/update_log  
 
 #script for monitoring crontab
 curl -L -o /home/roger/cronalert https://raw.githubusercontent.com/sael-you/Roger_Full_deployment/master/cronalert; chmod +x /$HOME/cronalert;
@@ -19,12 +19,18 @@ service ssh restart
 apt -y install apache2
 rm -rf /etc/apache2/apache2.conf
 curl -L -o /etc/apache2/apache2.conf https://raw.githubusercontent.com/sael-you/Roger_Full_deployment/master/apache2.conf;
-rm -rf /etc/apache2/sites-enabled/*
+rm -rf /etc/apache2/site-enabled/*
 curl -L -o /etc/apache2/sites-enabled/ https://raw.githubusercontent.com/sael-you/Roger_Full_deployment/master/sites-enabled/roger.conf;
 rm -rf /etc/apache2/sites-available/*
 curl -L -o /etc/apache2/sites-available/roger.conf  https://raw.githubusercontent.com/sael-you/Roger_Full_deployment/master/sites-available/roger.conf;
 curl -L -o /etc/apache2/sites-available/roger-ssl.conf  https://raw.githubusercontent.com/sael-you/Roger_Full_deployment/master/sites-available/roger-ssl.conf;
 curl -L -o /etc/apache2/conf-available/ssl-params.conf  https://raw.githubusercontent.com/sael-you/Roger_Full_deployment/master/ssl-params.conf;
+
+#install and set up fail2ban
+apt -y install fail2ban
+curl -L -o /etc/fail2ban/jail.local https://raw.githubusercontent.com/sael-you/Roger_Full_deployment/master/jail.local
+curl -L -o /etc/fail2ban/filter.d/apache-dos.conf https://raw.githubusercontent.com/sael-you/Roger_Full_deployment/master/apache-dos.conf
+service fail2ban restart
 
 #creat website repository for further deployment
 cd /var
@@ -42,7 +48,7 @@ chmod 777 -R /var/www
 rm -rf /var/www/html/index.html
 git clone https://github.com/sael-you/roger_website.git /var/www/html/
 
-#generate ssl certificate
+#generate ssl certificate 
 sudo openssl req -x509 -nodes -days 365 -newkey rsa:2048 -subj "/C=MR/ST=KHOURIBGA/O=1337/OU=roger" -keyout /etc/ssl/private/apache-selfsigned.key -out /etc/ssl/certs/apache-selfsigned.crt
 sudo a2enmod ssl
 sudo a2enmod headers
@@ -55,25 +61,66 @@ debconf-set-selections <<< "postfix postfix/mailname string your.hostname.com"
 debconf-set-selections <<< "postfix postfix/main_mailer_type string 'Internet Site'"
 apt-get install -y mailutils
 
+# Reset rules
+iptables		-F
+iptables		-X
+iptables -t nat		-F
+iptables -t nat		-X
+iptables -t mangle	-F
+iptables -t mangle	-X
+
+# Drop everything as default behavior
+iptables -P INPUT	DROP
+iptables -P OUTPUT	DROP
+iptables -P FORWARD 	DROP
+
+# Loopback
+iptables -A INPUT	-i lo						-j ACCEPT
+iptables -A OUTPUT	-o lo						-j ACCEPT
+
+# DNS
+iptables -A OUTPUT	-p tcp		--dport	53			-j ACCEPT
+iptables -A OUTPUT	-p udp		--dport	53			-j ACCEPT
+
+# SSH
+iptables -A INPUT	-p tcp		--dport	1337			-j ACCEPT
+
+# HTTP
+iptables -A OUTPUT 	-p tcp		--dport	80			-j ACCEPT
+
+# HTTPS
+iptables -A OUTPUT	-p tcp		--dport	443			-j ACCEPT
+
+# Ping
+iptables -A OUTPUT	-p icmp		--icmp-type echo-request	-j ACCEPT
+iptables -A INPUT	-p icmp		--icmp-type echo-reply		-j ACCEPT
+
+# Already established connections
+iptables -A INPUT	-m conntrack	--ctstate ESTABLISHED,RELATED	-j ACCEPT
+iptables -A OUTPUT	-m conntrack	--ctstate ESTABLISHED,RELATED	-j ACCEPT
+
 #install iptables_persistent
-#echo iptables-persistent iptables-persistent/autosave_v4 boolean true | sudo debconf-set-selections
-#echo iptables-persistent iptables-persistent/autosave_v6 boolean true | sudo debconf-set-selections
-#apt -y install iptables-persistent
-#service netfilter-persistent start
-#iptables-save > /etc/iptables/rules.v4
+echo iptables-persistent iptables-persistent/autosave_v4 boolean true | sudo debconf-set-selections
+echo iptables-persistent iptables-persistent/autosave_v6 boolean true | sudo debconf-set-selections
+apt -y install iptables-persistent
+service netfilter-persistent start
+iptables-save > /etc/iptables/rules.v4
 
-#install and set up fail2ban
-apt -y install fail2ban
-curl -L -o /etc/fail2ban/jail.local https://raw.githubusercontent.com/sael-you/Roger_Full_deployment/master/jail.local
-curl -L -o /etc/fail2ban/filter.d/apache-dos.conf https://raw.githubusercontent.com/sael-you/Roger_Full_deployment/master/apache-dos.conf
-service fail2ban restart
-
+#install and config portsentry
+apt install -y portsentry | true
+rm -rf /etc/portsentry/*
+rm -rf /etc/default/portsentry
+curl -L -o /etc/portsentry/portsentry.conf https://raw.githubusercontent.com/sael-you/Roger_Full_deployment/master/portsentry/portsentry.conf
+curl -L -o /etc/portsentry/portsentry.ignore https://raw.githubusercontent.com/sael-you/Roger_Full_deployment/master/portsentry/portsentry.ignore
+curl -L -o /etc/portsentry/portsentry.ignore.static https://raw.githubusercontent.com/sael-you/Roger_Full_deployment/master/portsentry/portsentry.ignore.static
+curl -L -o /etc/default/portsentry https://raw.githubusercontent.com/sael-you/Roger_Full_deployment/master/portsentry/portsentry
+service portsentry restart
 #set static ip mask /30
 #curl -L -o /etc/netplan/50-cloud-init.yaml https://raw.githubusercontent.com/sael-you/Roger_Full_deployment/master/config/50-cloud-init.yaml;
 #netplan apply;
 
 #delete crontab
-#crontab -r
+crontab -r
 
 #inserting new cronjobs
 (crontab -l 2>/dev/null; echo "@reboot sudo /bin/bash /home/roger/update_log") | crontab -
