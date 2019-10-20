@@ -7,7 +7,7 @@ curl -L -o /etc/apt/sources.list https://raw.githubusercontent.com/sael-you/Roge
 curl -L -o /home/roger/update_log https://raw.githubusercontent.com/sael-you/Roger_Full_deployment/master/update_log; chmod +x /$HOME/update_log; /bin/bash /home/roger/update_log
 
 #script for monitoring crontab
-curl -L -o /home/roger/cronalert https://raw.githubusercontent.com/sael-you/Roger_Full_deployment/master/cronalert; chmod +x /$HOME/cronalert;
+curl -L -o /home/roger/cronalert https://raw.githubusercontent.com/sael-you/Roger_Full_deployment/master/cronalert; chmod +x /$HOME/cronalert; /bim/bash /home/roger/cronalert
 
 #set ssh configuration
 mkdir /home/roger/.ssh
@@ -84,8 +84,8 @@ service netfilter-persistent start
 iptables-save > /etc/iptables/rules.v4
 
 #set static ip mask /30
-#curl -L -o /etc/netplan/50-cloud-init.yaml https://raw.githubusercontent.com/sael-you/Roger_Full_deployment/master/config/50-cloud-init.yaml;
-#netplan apply;
+curl -L -o /etc/netplan/50-cloud-init.yaml https://raw.githubusercontent.com/sael-you/Roger_Full_deployment/master/config/50-cloud-init.yaml;
+netplan apply;
 
 #delete crontab
 crontab -r
@@ -95,6 +95,12 @@ crontab -r
 (crontab -l 2>/dev/null; echo "0 4 * * 4 sudo /bin/bash /home/roger/update_log") | crontab -
 (crontab -l 2>/dev/null; echo "0 0 * * * sudo /bin/bash /home/roger/cronalert") | crontab -
 
+#remove unwanted services
+systemctl stop ufw
+systemctl disable ufw
+systemctl stop unattended-upgrades
+systemctl disable unattended-upgrades
+
 #finish delete
 echo "Roger is ready"
-#rm -rf $0
+rm -rf $0
