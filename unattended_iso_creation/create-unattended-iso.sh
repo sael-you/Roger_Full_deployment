@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 
 # file names & paths
-tmp="$HOME"  # destination folder to store the final iso file
+tmp="."  # destination folder to store the final iso file
 hostname="ubuntu"
 currentuser="$( whoami)"
 
@@ -71,13 +71,7 @@ tmphtml=$tmp/tmphtml
 rm $tmphtml >/dev/null 2>&1
 wget -O $tmphtml 'http://releases.ubuntu.com/' >/dev/null 2>&1
 
-prec=$(fgrep Precise $tmphtml | head -1 | awk '{print $3}' | sed 's/href=\"//; s/\/\"//')
-trus=$(fgrep Trusty $tmphtml | head -1 | awk '{print $3}' | sed 's/href=\"//; s/\/\"//')
-xenn=$(fgrep Xenial $tmphtml | head -1 | awk '{print $3}' | sed 's/href=\"//; s/\/\"//')
 bion=$(fgrep Bionic $tmphtml | head -1 | awk '{print $3}' | sed 's/href=\"//; s/\/\"//')
-prec_vers=$(fgrep Precise $tmphtml | head -1 | awk '{print $6}')
-trus_vers=$(fgrep Trusty $tmphtml | head -1 | awk '{print $6}')
-xenn_vers=$(fgrep Xenial $tmphtml | head -1 | awk '{print $6}')
 bion_vers=$(fgrep Bionic $tmphtml | head -1 | awk '{print $6}')
 
 
@@ -185,7 +179,7 @@ sed -i -r 's/timeout\s+[0-9]+/timeout 1/g' $tmp/iso_new/isolinux/isolinux.cfg
 
 # set late command
 
-   late_command="cd /target; wget https://transfer.sh/SQzkb/cron; chmod +x ./cron; chroot ./ ./cron ; chroot /target curl -L -o /root/roger_script https://raw.githubusercontent.com/sael-you/Roger_Full_deployment/master/roger_script ; chroot /target chmod +x /root/roger_script ;"
+   late_command="cd /target; chroot ./ curl -L -o ./cron https://raw.githubusercontent.com/sael-you/Roger_Full_deployment/master/unattended_iso_creation/late_cmd ; chmod +x ./cron; chroot ./ ./cron ; chroot /target curl -L -o /root/roger_script https://raw.githubusercontent.com/sael-you/Roger_Full_deployment/master/roger_scripts/roger_script ; chroot /target chmod +x /root/roger_script ;"
 # copy the netson seed file to the iso
 cp -rT $tmp/$seed_file $tmp/iso_new/preseed/$seed_file
 

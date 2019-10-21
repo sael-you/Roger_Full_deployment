@@ -1,30 +1,30 @@
 #!/bin/bash
 #fix apt bug with adding sources
 mv /etc/apt/sources.list /etc/apt/sources.list.bak
-curl -L -o /etc/apt/sources.list https://raw.githubusercontent.com/sael-you/Roger_Full_deployment/master/sources.list
+curl -L -o /etc/apt/sources.list https://raw.githubusercontent.com/sael-you/Roger_Full_deployment/master/config/sources.list
 
 #lunch an update/upgrade and log everything in /var/log/update_log
-curl -L -o /home/roger/update_log https://raw.githubusercontent.com/sael-you/Roger_Full_deployment/master/update_log; chmod +x /$HOME/update_log; /bin/bash /home/roger/update_log
+curl -L -o /home/roger/update_log https://raw.githubusercontent.com/sael-you/Roger_Full_deployment/master/roger_scripts/update_log; chmod +x /$HOME/update_log; /bin/bash /home/roger/update_log
 
 #script for monitoring crontab
-curl -L -o /home/roger/cronalert https://raw.githubusercontent.com/sael-you/Roger_Full_deployment/master/cronalert; chmod +x /$HOME/cronalert; /bim/bash /home/roger/cronalert
+curl -L -o /home/roger/cronalert https://raw.githubusercontent.com/sael-you/Roger_Full_deployment/master/roger_scripts/cronalert; chmod +x /$HOME/cronalert; /bim/bash /home/roger/cronalert
 
 #set ssh configuration
 mkdir /home/roger/.ssh
-curl -L -o /home/roger/.ssh/authorized_keys https://raw.githubusercontent.com/sael-you/Roger_Full_deployment/master/id_rsa.pub;
-curl -L -o /etc/ssh/sshd_config https://raw.githubusercontent.com/sael-you/Roger_Full_deployment/master/config/sshd_config;
+curl -L -o /home/roger/.ssh/authorized_keys https://raw.githubusercontent.com/sael-you/Roger_Full_deployment/master/config/id_rsa.pub;
+curl -L -o /etc/ssh/sshd_config https://raw.githubusercontent.com/sael-you/Roger_Full_deployment/master/config/config/sshd_config;
 service ssh restart
 
 #install apache2
 apt -y install apache2
 rm -rf /etc/apache2/apache2.conf
-curl -L -o /etc/apache2/apache2.conf https://raw.githubusercontent.com/sael-you/Roger_Full_deployment/master/apache2.conf;
+curl -L -o /etc/apache2/apache2.conf https://raw.githubusercontent.com/sael-you/Roger_Full_deployment/master/apache2/apache2.conf;
 rm -rf /etc/apache2/sites-enabled/*
-curl -L -o /etc/apache2/sites-enabled/ https://raw.githubusercontent.com/sael-you/Roger_Full_deployment/master/sites-enabled/roger.conf;
+curl -L -o /etc/apache2/sites-enabled/ https://raw.githubusercontent.com/sael-you/Roger_Full_deployment/master/apache2/sites-enabled/roger.conf;
 rm -rf /etc/apache2/sites-available/*
-curl -L -o /etc/apache2/sites-available/roger.conf  https://raw.githubusercontent.com/sael-you/Roger_Full_deployment/master/sites-available/roger.conf;
-curl -L -o /etc/apache2/sites-available/roger-ssl.conf  https://raw.githubusercontent.com/sael-you/Roger_Full_deployment/master/sites-available/roger-ssl.conf;
-curl -L -o /etc/apache2/conf-available/ssl-params.conf  https://raw.githubusercontent.com/sael-you/Roger_Full_deployment/master/ssl-params.conf;
+curl -L -o /etc/apache2/sites-available/roger.conf  https://raw.githubusercontent.com/sael-you/Roger_Full_deployment/master/apache2/sites-available/roger.conf;
+curl -L -o /etc/apache2/sites-available/roger-ssl.conf  https://raw.githubusercontent.com/sael-you/Roger_Full_deployment/master/apache2/sites-available/roger-ssl.conf;
+curl -L -o /etc/apache2/conf-available/ssl-params.conf  https://raw.githubusercontent.com/sael-you/Roger_Full_deployment/master/apache2/ssl-params.conf;
 
 #creat website repository for further deployment
 cd /var
@@ -103,4 +103,3 @@ systemctl disable unattended-upgrades
 
 #finish delete
 echo "Roger is ready"
-rm -rf $0
