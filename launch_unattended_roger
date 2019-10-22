@@ -28,13 +28,13 @@ while true; do
 				[1]* )
 					yes y | ssh-keygen -t rsa -f "$HOME/.ssh/id_rsa" -N '' >/dev/null
 					cp ~/.ssh/id_rsa.pub ./config/
-					git add id_rsa.pub
+					git add ./config/id_rsa.pub
 					git commit -m "new pubkey"
 					git push
 					break;;
 				[2]* )
 					cp ~/.ssh/id_rsa.pub ./config/
-					git add id_rsa.pub
+					git add ./config/id_rsa.pub
 					git commit -m "new pubkey"
 					git push
 					break;;
