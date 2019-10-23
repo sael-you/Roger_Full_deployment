@@ -94,7 +94,7 @@ iptables -A INPUT -p tcp --dport 1337 -j ACCEPT
 iptables -I INPUT -p tcp --dport 1337 -i enp0s3 \
 	         -m state --state new -m recent --set
 iptables -I INPUT -p tcp --dport 1337 -i enp0s3 -m state --state new \
-	       -m recent --update --seconds 60 --hitcount 20 -j BANNED
+	       -m recent --update --seconds 600 --hitcount 20 -j BANNED
 # allow http/https
 iptables -A INPUT -p tcp --dport 80 -j ACCEPT
 iptables -A OUTPUT -p tcp --dport 80 -j ACCEPT
