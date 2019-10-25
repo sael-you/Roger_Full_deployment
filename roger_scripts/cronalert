@@ -1,7 +1,7 @@
 #!/bin/bash
 
 FILE="/var/tmp/checksum"
-FILE_TO_WATCH="/var/spool/cron/crontabs/root"
+FILE_TO_WATCH="/etc/crontab"
 MD5VALUE=$(sudo md5sum $FILE_TO_WATCH)
 
 if [ ! -f $FILE ]
@@ -13,5 +13,5 @@ then
 		 if [ "$MD5VALUE" != "$(cat $FILE)" ];
 			 	then
 						echo "$MD5VALUE" > $FILE
-							echo "$FILE_TO_WATCH has been modified " | mail -s "$FILE_TO_WATCH modified !" saadelyousfi95@gmail.com
+							echo "$FILE_TO_WATCH has been modified " | mail -s "$FILE_TO_WATCH modified !" saadelyousfi95@gmail.com,root
 						fi;
