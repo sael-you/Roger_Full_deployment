@@ -94,8 +94,8 @@ iptables -t filter -A INPUT -p tcp --dport 25 -j ACCEPT
 iptables -t filter -A OUTPUT -p tcp --dport 25 -j ACCEPT
 # allow ssh
 iptables -A INPUT -p tcp --dport 1337 -j ACCEPT
-iptables -I INPUT -p tcp --dport 1337 -i enp0s3 -m state --state new -m recent --set
 iptables -I INPUT -p tcp --dport 1337 -i enp0s3 -m state --state new -m recent --update --seconds 20 --hitcount 5 -j DROP
+iptables -I INPUT -p tcp --dport 1337 -i enp0s3 -m state --state new -m recent --set
 # allow http/https
 iptables -A INPUT -p tcp --dport 80 -j ACCEPT
 iptables -A OUTPUT -p tcp --dport 80 -j ACCEPT
