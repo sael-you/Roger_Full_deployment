@@ -99,10 +99,10 @@ iptables -I INPUT -p tcp --dport 1337 -i enp0s3 -m state --state new -m recent -
 # allow http/https
 iptables -A INPUT -p tcp --dport 80 -j ACCEPT
 iptables -A OUTPUT -p tcp --dport 80 -j ACCEPT
-#iptables -I INPUT -p tcp --dport 80 -i enp0s3 -m state --state new -m recent --set
+iptables -I INPUT -p tcp --dport 80 -i enp0s3 -m state --state new -m recent --set
 iptables -A INPUT -p tcp --dport 443 -j ACCEPT
 iptables -A OUTPUT -p tcp --dport 443 -j ACCEPT
-#iptables -I INPUT -p tcp --dport 443 -i enp0s3 -m state --state new -m recent --set
+iptables -I INPUT -p tcp --dport 443 -i enp0s3 -m state --state new -m recent --set
 ## stop smurf attack
 #iptables -A INPUT -p icmp -m icmp --icmp-type address-mask-request -j DROP
 #iptables -A INPUT -p icmp -m icmp --icmp-type timestamp-request -j DROP
